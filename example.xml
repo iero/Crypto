@@ -1,18 +1,21 @@
 <?xml version="1.0"?>
 <data>
 
-  <output>/tmp/output</output>
+	<!-- directory for storing output -->
+	<output>/tmp/output</output>
 
-  <!-- Fill sections or remove them if not needed -->
+	<!-- Fill sections below AND remove those not needed -->
 
-  <service name="binance">
-	<api_key>YOUR_KEY</api_key>
-	<api_secret>YOUR_SECRET</api_secret>
-  </service>
+	<service name="binance">
+		<api_key>YOUR_KEY</api_key>
+		<api_secret>YOUR_SECRET</api_secret>
+		<fees>https://www.binance.com/assetWithdraw/getAllAsset.html</fees>
+	</service>
 
-  <service name="kucoin">
-	<api_key>YOUR_KEY</api_key>
-	<api_secret>YOUR_SECRET</api_secret>
-  </service>
+	<service name="kucoin">
+	 <api_key>YOUR_KEY</api_key>
+	 <api_secret>YOUR_SECRET</api_secret>
+	 <fees>https://news.kucoin.com/en/fee/</fees>
+ </service>
 
 </data>

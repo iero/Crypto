@@ -36,6 +36,7 @@ if __name__ == "__main__":
 
 	print(result[(result['delta'] > mininmum_gain)][cols])
 
+	print('Transfers available : ')
 	for index, row in result[(result['delta'] > mininmum_gain)].iterrows():
 		from_exchange = row['From']
 		to_exchange = row['To']
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 		delta = row['deltaP']
 		address = crypto.assets.get_deposit_address(dict_clients[to_exchange],coin)
 		if address :
-			print('{4}\t{0} from {1}\t to {2} \taddress {3}'.format(coin,from_exchange,to_exchange,address,delta))
+			print('{4}\t{0} {1}\t to {2} \taddress {3}'.format(coin,from_exchange,to_exchange,address,delta))
 		# else :
 			# print('Cannot transfer {0}\t from {1} to {2}'.format(coin,from_exchange,to_exchange))
 

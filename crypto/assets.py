@@ -15,8 +15,6 @@ def get_deposit_address(client,coin) :
 	# 	print(client.returnDepositAddresses)
 	return None
 
-
-
 def get_withdrawal_fees(client,url) :
 	return None
 

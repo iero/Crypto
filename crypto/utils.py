@@ -49,6 +49,73 @@ def get_clients(file) :
 
 	return clients
 
+
+def get_out_dir(file) :
+	tree = ET.parse(file)
+	settings = tree.getroot()
+
+	out_dir = settings.find('output').text
+	# Create paths
+	if not os.path.exists(out_dir): os.makedirs(out_dir)
+	rep = ['market','history','history/binance','history/kucoin','history/poloniex','fees']
+	for r in rep :
+		if not os.path.exists(out_dir+'/'+r): os.makedirs(out_dir+'/'+r)
+
+	return out_dir
+
+def get_fees_url(file, client) :
+	tree = ET.parse(file)
+	settings = tree.getroot()
+
+	for service in settings.findall('service') :
+		name = get_client_name(client)
+		if service.get("name") == name :
+			if service.find('fees') is not None :
+				return service.find('fees').text
+	return None
+
+# Get fees for different platforms
+def get_fees(file, client) :
+	df = pd.DataFrame(columns=['coin', 'minimum', 'fee'])
+
+	fees_url = get_fees_url(file, client)
+	if fees_url is not None :
+		if type(client) is crypto.binanceClient :
+			r = requests.get(fees_url)
+			for asset in r.json() :
+				asset_code = asset['assetCode']
+				asset_name = asset['assetName']
+				asset_minimum = float(asset['minProductWithdraw'])
+				asset_fee = float(asset['transactionFee'])
+				df.loc[len(df.index)] = [asset_code,asset_minimum,asset_fee]
+			return df
+		elif type(client) is crypto.kucoinClient :
+			web_page = requests.get(fees_url)
+			soup = BeautifulSoup(web_page.content, "html.parser")
+			table = soup.find('table')
+			for row in table.find_all('tr'):
+				columns = row.find_all('td')
+				asset_code = columns[0].get_text().strip()
+				if asset_code == 'Assets' :
+					continue
+				asset_minimum = 0
+				asset_fee = columns[1].get_text().strip()
+				if asset_fee == 'Free' :
+					asset_fee = 0
+				else :
+					asset_fee = float(asset_fee)
+				df.loc[len(df.index)] = [asset_code,asset_minimum,asset_fee]
+
+			return df
+
+	return pd.DataFrame()
+
+# Save fees
+def save_fees(dir,name,df) :
+	file = dir+'/fees/'+name+".pickle"
+	df.to_pickle(file)
+	# Load with df = pd.read_pickle(file)
+
 def get_client_name(client) :
 	if type(client) is crypto.binanceClient :
 		return 'binance'
@@ -106,61 +173,6 @@ def get_ethereum_balances(file) :
 				print(wallet)
 				# ad = account.get('add').text
 				# print(ad)
-
-def get_out_dir(file) :
-	tree = ET.parse(file)
-	settings = tree.getroot()
-
-	out_dir = settings.find('output').text
-	# Create paths
-	if not os.path.exists(out_dir): os.makedirs(out_dir)
-	rep = ['market','history','history/binance','history/kucoin','history/poloniex']
-	for r in rep :
-		if not os.path.exists(out_dir+'/'+r): os.makedirs(out_dir+'/'+r)
-
-	return out_dir
-
-def get_fees_url(file, client) :
-	tree = ET.parse(file)
-	settings = tree.getroot()
-
-	for service in settings.findall('service') :
-		name = get_client_name(client)
-		if service.get("name") == name :
-			if service.find('fees') is not None :
-				return service.find('fees').text
-	return None
-
-def get_fees(file, client) :
-	df = pd.DataFrame(columns=['coin', 'minimum', 'fee'])
-
-	fees_url = get_fees_url(file, client)
-	if fees_url is not None :
-		if type(client) is crypto.binanceClient :
-			r = requests.get(fees_url)
-			for asset in r.json() :
-				asset_code = asset['assetCode']
-				asset_name = asset['assetName']
-				asset_minimum = float(asset['minProductWithdraw'])
-				asset_fee = float(asset['transactionFee'])
-				df.loc[len(df.index)] = [asset_code,asset_minimum,asset_fee]
-			return df
-		elif type(client) is crypto.kucoinClient :
-			web_page = requests.get(fees_url)
-			soup = BeautifulSoup(web_page.content, "html.parser")
-			table = soup.find('table')
-			for row in table.find_all('tr'):
-				columns = row.find_all('td')
-				asset_code = columns[0].get_text().strip()
-				if asset_code == 'Assets' :
-					continue
-				asset_minimum = 0
-				asset_fee = columns[1].get_text()
-				df.loc[len(df.index)] = [asset_code,asset_minimum,asset_fee]
-
-			return df
-
-	return pd.DataFrame()
 
 # Time
 current_milli_time = lambda: int(round(time.time() * 1000))

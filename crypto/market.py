@@ -44,7 +44,7 @@ def get_market_prices(client) :
 		for price in prices :
 			pair = price['id']
 			market_prices[pair] = float(client.get_product_ticker(pair)['price'])
-	
+
 	market_prices['ETH-ETH'] = 1
 	market_prices['BTC-BTC'] = 1
 	if 'ETH-BTC' in market_prices :
@@ -60,7 +60,6 @@ def get_market_prices(client) :
 		market_prices['EUR-BTC'] = 1 / market_prices['BTC-EUR']
 	if 'ETH-USD' in market_prices :
 		market_prices['ETH-USDT'] = market_prices['ETH-USD']
-	
 
 	return market_prices
 
@@ -79,7 +78,6 @@ def update_market_file(dir,market) :
 			w.writeheader()
 		w.writerow(market)
 
-#
 def get_all_market_prices(clients) :
 	result = None
 	list_clients = []
@@ -100,7 +98,7 @@ def get_all_market_prices(clients) :
 	result['delta'] = ((result.max(axis=1) - result.min(axis=1)) / result.min(axis=1)) * 100
 	result['deltaP'] = pd.Series(["{0:.0f}%".format(val) for val in result['delta']], index = result.index)
 
-	result['From'] = result[list_clients].idxmin(axis=1)
-	result['To'] = result[list_clients].idxmax(axis=1)
+	result['From'] = result[list_clients].idxmax(axis=1)
+	result['To'] = result[list_clients].idxmin(axis=1)
 
 	return result
