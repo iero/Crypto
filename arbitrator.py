@@ -41,7 +41,8 @@ if __name__ == "__main__":
 	# Create transactions scenarios
 	bag = {}
 	bag['BTC'] = 0.01
-	bag['ETH'] = 0.1
+	bag['ETH'] = 0.5
+	bag['USDT'] = 100
 	print('Transfers available')
 	for index, row in market_prices[(market_prices['delta'] > mininmum_gain)].iterrows():
 		# get paramaters
@@ -56,19 +57,28 @@ if __name__ == "__main__":
 		# extract corresponding fees
 		df_fees = clients_fees[client_name]
 		df_fees = df_fees.loc[df_fees['coin'] == coin]
-		fee = '?'
+		fee = 0
+		min_withdraw = 0
 		if not df_fees.empty :
 			fee  = df_fees['fee'].iloc[0]
+			min_withdraw  = df_fees['minimum'].iloc[0]
 
-		# get bag in alt_coin
-		bag[coin] = bag[base_coin] * price_from_exchange
-		print('Bag of {0} {1} is {2} {3}'.format(bag[base_coin],base_coin,bag[coin],coin))
+		# print(bag[base_coin])
+		# print(price_from_exchange)
+		# print(fee)
+		# get bag in alt_coin & verify it is more than withdraw
+		bag[coin] = (bag[base_coin] / price_from_exchange) + fee
+		new_bag = (bag[base_coin] / price_from_exchange) * price_to_exchange
+		print(new_bag)
 
 		# get target address
 		address = crypto.assets.get_deposit_address(clients_dict[to_exchange],coin)
 
 		# Output
 		if address :
-			print('{4}\t{0} {1}\t to {2} (fee: {5})\taddress {3}'.format(coin,from_exchange,to_exchange,address,delta,fee))
+			print('Change Bag of {0:04.2f} {1} to {2:06.5f} {3} (fee : {4}) and get {5:04.2f} {1}'.format(bag[base_coin],base_coin,bag[coin],coin,fee,new_bag))
+			print('{4:>3} {0:>4} from {1} to {2} \taddress {3}'.format(coin,from_exchange,to_exchange,address,delta))
+		if min_withdraw > 0 and bag[coin] > min_withdraw :
+			print('Amount too small ({0})'.min_withdraw)
 		# else :
 			# print('Cannot transfer {0}\t from {1} to {2}'.format(coin,from_exchange,to_exchange))

@@ -98,7 +98,7 @@ def get_all_market_prices(clients) :
 	result['delta'] = ((result.max(axis=1) - result.min(axis=1)) / result.min(axis=1)) * 100
 	result['deltaP'] = pd.Series(["{0:.0f}%".format(val) for val in result['delta']], index = result.index)
 
-	result['From'] = result[list_clients].idxmax(axis=1)
-	result['To'] = result[list_clients].idxmin(axis=1)
+	result['From'] = result[list_clients].idxmin(axis=1)
+	result['To'] = result[list_clients].idxmax(axis=1)
 
 	return result
