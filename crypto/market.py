@@ -79,7 +79,7 @@ def update_market_file(dir,market) :
 		w.writerow(market)
 
 def get_all_market_prices(clients) :
-	result = None
+	df = None
 	list_clients = []
 	for client in clients :
 		name = crypto.utils.get_client_name(client)
@@ -88,17 +88,20 @@ def get_all_market_prices(clients) :
 		t = pd.DataFrame(list(market_prices.items()), columns=['pair', name])
 		t[name] = t[name].apply(pd.to_numeric)
 
-		if result is None :
-			result = t
+		if df is None :
+			df = t
 		else :
-			result = pd.merge(result, t, on='pair', how='outer')
-	# print(result.head(10))
+			df = pd.merge(df, t, on='pair', how='outer')
+	# print(df.head(10))
 
 	# Find maximum deltas between two platforms
-	result['delta'] = ((result.max(axis=1) - result.min(axis=1)) / result.min(axis=1)) * 100
-	result['deltaP'] = pd.Series(["{0:.0f}%".format(val) for val in result['delta']], index = result.index)
+	df['delta'] = ((df.max(axis=1) - df.min(axis=1)) / df.min(axis=1)) * 100
+	df['deltaP'] = pd.Series(["{0:.0f}%".format(val) for val in df['delta']], index = df.index)
 
-	result['From'] = result[list_clients].idxmin(axis=1)
-	result['To'] = result[list_clients].idxmax(axis=1)
+	df['From'] = df[list_clients].idxmin(axis=1)
+	df['To'] = df[list_clients].idxmax(axis=1)
 
-	return result
+	df.index =  df['pair']
+	df = df.drop('pair', 1)
+
+	return df
