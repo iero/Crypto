@@ -12,7 +12,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--params", type=str, help="file.xml", required=True)
 	parser.add_argument("--pair", type=str, help="Pair to trade (ie ETHBTC)", required=False)
-	parser.add_argument("--exchange", type=str, help="platform (binance, kucoin, poloniex)", required=False)
+	parser.add_argument("--exchange", type=str, help="platform (binance, kucoin, poloniex, gdax..)", required=False)
 	#parser.add_argument("--year", type=int, help="Year to check", required=True)
 	option = parser.parse_args()
 
@@ -25,6 +25,7 @@ if __name__ == "__main__":
 		if option.exchange is not None and option.exchange != crypto.utils.get_client_name(client) :
 			continue
 
+		print(crypto.utils.get_client_name(client))
 		list_pairs = {}
 		if option.pair is None :
 			list_pairs = crypto.utils.get_all_pairs(client)
@@ -35,21 +36,24 @@ if __name__ == "__main__":
 			else :
 				print('Pair {0} not available on {1}'.format(option.pair,crypto.utils.get_client_name(client)))
 
-		if type(client) is binanceClient :
+		print(list_pairs)
+
+		if type(client) is crypto.binanceClient :
 			# Binance opening : 14/07/2017
 			date_original = datetime(2017, 7, 14)
-		elif type(client) is kucoinClient :
+		elif type(client) is crypto.kucoinClient :
 			# Kucoin opening : 27/09/2017
 			date_original = datetime(2017, 9, 27)
-		elif type(client) is poloClient :
+		elif type(client) is crypto.poloClient :
 			# Dont know when opening but 01/01/2016 seems good.
 			date_original = datetime(2016, 1, 1)
-		# elif type(client) is bitfinexClient :
-			# date_max = datetime(2015, 10, 1)
-			# df = crypto.klines.get_historical_klines(client,'BTC_ETH',date_original,date_max)
-			# print(df)
+		elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
+			date_original = datetime(2016, 1, 1)
+			date_max = datetime(2016, 1, 31)
+			df = crypto.klines.get_historical_klines(client,'BTC_ETH',date_original,date_max)
+			print(df)
 
-		# sys.exit(1)
+		sys.exit(1)
 		loop_timer = 0.5
 		print ('{0} pairs found on {1}'.format(len(list_pairs),crypto.utils.get_client_name(client)))
 		for pair in list_pairs :

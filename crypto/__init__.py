@@ -13,3 +13,4 @@ from kucoin.client import Client as kucoinClient
 from polo import Poloniex as poloClient
 from gdax import AuthenticatedClient as gdaxClient
 from gdax import PublicClient as gdaxPClient
+from bitfinex.client import Client as bitfinexClient

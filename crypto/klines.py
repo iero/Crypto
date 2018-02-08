@@ -17,7 +17,7 @@ def get_historical_klines(client, pair, day, dateMax) :
 	if type(client) is crypto.binanceClient :
 		timestamp = int(time.mktime(day.timetuple())) * 1000
 		klines = client.get_klines(symbol=pair, interval=crypto.binanceClient.KLINE_INTERVAL_5MINUTE, startTime=timestamp)
-	elif type(client) is kucoinClient :
+	elif type(client) is crypto.kucoinClient :
 		timestamp = int(time.mktime(day.timetuple()))
 		timestamp_max = int(time.mktime(dateMax.timetuple()))
 		klines = client.get_kline_data_tv(pair, crypto.kucoinClient.RESOLUTION_5MINUTES, timestamp, timestamp_max)
@@ -25,6 +25,13 @@ def get_historical_klines(client, pair, day, dateMax) :
 		timestamp = int(time.mktime(day.timetuple()))
 		timestamp_max = int(time.mktime(dateMax.timetuple()))
 		klines = client.returnChartData(pair, 300, start=timestamp, end=timestamp_max)
+	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
+		# 200 points per request
+		timestamp = int(time.mktime(day.timetuple()))
+		# timestamp_max = int(time.mktime(dateMax.timetuple()))
+		print(timestamp)
+		klines = client.get_product_historic_rates(pair, start=timestamp, granularity=300)
+		print(klines)
 
 	return format_klines(client, pd.DataFrame(klines))
 

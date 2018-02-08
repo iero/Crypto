@@ -21,31 +21,40 @@ def get_clients(file) :
 		client = None
 		name = service.get("name")
 
-		if service.get("name") == "binance" :
-			api_key = service.find("api_key").text
-			api_secret = service.find("api_secret").text
-			client = crypto.binanceClient(api_key, api_secret)
-		elif service.get("name") == "kucoin" :
-			api_key = service.find("api_key").text
-			api_secret = service.find("api_secret").text
-			client = crypto.kucoinClient(api_key, api_secret)
-		# elif service.get("name") == "poloniex" :
-		# 	api_key = service.find("api_key").text
-		# 	api_secret = service.find("api_secret").text
-		# 	client = crypto.poloClient(api_key, api_secret)
-		elif service.get("name") == "gdax" :
-			api_key = service.find("api_key").text
-			api_secret = service.find("api_secret").text
-			api_passphrase = service.find("api_passphrase").text
-			client = crypto.gdaxClient(api_key, api_secret, api_passphrase)
-		# elif service.get("name") == "kraken" :
-		# 	from pykrakenapi import KrakenAPI
+		try :
+			if service.get("name") == "binance" :
+				api_key = service.find("api_key")
+				api_secret = service.find("api_secret")
+				client = crypto.binanceClient(api_key.text, api_secret.text)
+			elif service.get("name") == "kucoin" :
+				api_key = service.find("api_key")
+				api_secret = service.find("api_secret")
+				client = crypto.kucoinClient(api_key.text, api_secret.text)
+			elif service.get("name") == "poloniex" :
+				api_key = service.find("api_key")
+				api_secret = service.find("api_secret")
+				client = crypto.poloClient(api_key.text, api_secret.text)
+			elif service.get("name") == "gdax" :
+				api_key = service.find("api_key")
+				api_secret = service.find("api_secret")
+				api_passphrase = service.find("api_passphrase")
+				if api_key and api_secret and api_passphrase :
+					client = crypto.gdaxClient(api_key.text, api_secret.text, api_passphrase.text)
+				else :
+					client = crypto.gdaxPClient()
+			elif service.get("name") == "bitfinex" :
+				client = crypto.bitfinexClient()
+			# elif service.get("name") == "kraken" :
+			# 	from pykrakenapi import KrakenAPI
 
-		if verify_time(client) :
-			clients.append(client)
-			print('Connected to {0}'.format(get_client_name(client)))
-		else :
-			print('Client {} not available'.format(name))
+			if verify_time(client) :
+				clients.append(client)
+				print('Connected to {0}'.format(get_client_name(client)))
+			else :
+				print('Client {} not available'.format(name))
+
+		except :
+			print('Client {} not available (exception)'.format(name))
 
 	return clients
 
@@ -123,7 +132,7 @@ def get_client_name(client) :
 		return 'kucoin'
 	elif type(client) is crypto.poloClient :
 		return 'poloniex'
-	elif type(client) is crypto.gdaxClient :
+	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
 		return 'gdax'
 	else :
 		return None
@@ -139,8 +148,7 @@ def get_all_pairs(client) :
 		pairs = client.get_all_tickers()
 		for pair in pairs :
 			if pair['symbol'] == '123456' : continue
-			p = rchop(pair['symbol'])
-			u = unit(pair['symbol'])
+			p, u = chop(pair['symbol'])
 			list_pairs[p+'-'+u] = pair['symbol']
 
 	elif type(client) is crypto.kucoinClient :
@@ -154,11 +162,17 @@ def get_all_pairs(client) :
 			p = pair.split('_')
 			list_pairs[p[1]+'_'+p[0]] = pair
 
-	elif type(client) is crypto.gdaxClient :
-		pairs = client.returnTicker()
+	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient:
+		pairs = client.get_products()
+		for pair in pairs :
+			list_pairs[pair['base_currency']+'-'+pair['quote_currency']] = pair['id']
 
-	# print(list_pairs)
-	# return list_pairs.values()
+	elif type(client) is crypto.bitfinexClient :
+		pairs = client.symbols()
+		for pair in pairs :
+			p,u = chop(pair)
+			list_pairs[p+'-'+u] = pair
+
 	return list_pairs
 
 def get_ethereum_balances(file) :
@@ -203,7 +217,7 @@ def verify_time(client) :
 		if tickers is not None and len(tickers) > 0 :
 			return True
 
-	elif type(client) is crypto.gdaxClient :
+	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
 		timestamp_t = client.get_time()
 		timestamp = int(timestamp_t['epoch'])
 		return True # a adapter ? ex : 1517783784.87
@@ -230,26 +244,30 @@ def verify_time(client) :
 def percent_change(old_price, new_price) :
 	return (((new_price - old_price) / old_price) * 100)
 
-def rchop(thestring):
+# Chop XXXYYY to XXX and YYY
+def chop(thestring):
+	thestring = thestring.upper()
 	if thestring.endswith('ETH') :
-		return thestring[:-len('ETH')]
+		return thestring[:-len('ETH')], 'ETH'
 	elif thestring.endswith('BTC') :
-		return thestring[:-len('BTC')]
+		return thestring[:-len('BTC')] , 'BTC'
 	elif thestring.endswith('BNB') :
-		return thestring[:-len('BNB')]
+		return thestring[:-len('BNB')] , 'BNB'
 	elif thestring.endswith('USDT') :
-		return thestring[:-len('USDT')]
+		return thestring[:-len('USDT')] , 'USD'
+	elif thestring.endswith('USD') :
+		return thestring[:-len('USD')] , 'USD'
 	else :
-		return thestring
+		return thestring , ''
 
-def unit(thestring):
-	if thestring.endswith('ETH') :
-		return 'ETH'
-	elif thestring.endswith('BTC') :
-		return 'BTC'
-	elif thestring.endswith('BNB') :
-		return 'BNB'
-	elif thestring.endswith('USDT') :
-		return 'USDT'
-	else :
-		return thestring
+# def unit(thestring):
+# 	if thestring.endswith('ETH') :
+# 		return 'ETH'
+# 	elif thestring.endswith('BTC') :
+# 		return 'BTC'
+# 	elif thestring.endswith('BNB') :
+# 		return 'BNB'
+# 	elif thestring.endswith('USDT') :
+# 		return 'USDT'
+# 	else :
+# 		return thestring
