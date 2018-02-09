@@ -39,6 +39,9 @@ def add_market_prices_to_portfolio(portfolio, market_prices) :
 	portfolio['quantity'] = portfolio['quantity'].apply(pd.to_numeric)
 
 	for s in portfolio.index.values :
+		if s == 'USDT' :
+			s = 'USD'
+
 		if s+'-ETH' in market_prices :
 			portfolio_eth.append(market_prices[s+'-ETH'])
 		else :
@@ -48,12 +51,12 @@ def add_market_prices_to_portfolio(portfolio, market_prices) :
 
 	portfolio['eth'] = portfolio['quantity'] * portfolio_eth
 	portfolio['btc'] = portfolio['quantity'] * portfolio_btc
-	portfolio['usd'] = portfolio['eth'] * market_prices['ETH-USDT']
+	portfolio['usd'] = portfolio['eth'] * market_prices['ETH-USD']
 
 	return portfolio
 
 def add_original_buy_transactions(client,portfolio,market) :
-	no_symbols = ['Total','USDT','BTC','ETH','BNB']
+	no_symbols = ['Total','USD','BTC','ETH','BNB']
 
 	# For each symbol in portflio, try to get origin
 	symbols = portfolio.index.values

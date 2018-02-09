@@ -37,25 +37,26 @@ if __name__ == "__main__":
 			else :
 				print('Pair {0} not available on {1}'.format(option.pair,crypto.utils.get_client_name(client)))
 
-		# print(list_pairs)
 
 		# Original = opening date
 		if type(client) is crypto.binanceClient :
-			# Binance opening : 14/07/2017
 			date_original = datetime(2017, 7, 14)
 		elif type(client) is crypto.kucoinClient :
-			# Kucoin opening : 27/09/2017
 			date_original = datetime(2017, 9, 27)
 		elif type(client) is crypto.poloClient :
-			# Dont know when opening but 01/01/2016 seems good.
 			date_original = datetime(2016, 1, 1)
 		elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
 			date_original = datetime(2015, 1, 15)
-		# 	date_max = datetime(2016, 1, 2)
-		# 	df = crypto.klines.get_historical_klines(client,'ETH-USD',date_original,date_max)
-		# 	print(df)
+		elif type(client) is crypto.krakenClient :
+			date_original = 0
 
-		# sys.exit(1)
+		# Debug
+		#date_original = datetime(2018, 1, 1)
+		# df = crypto.klines.get_historical_klines(client,'ETH-USD',date_original,date_max)
+		df = crypto.klines.get_historical_klines(client,'BCHEUR',None,date_max)
+		print(df)
+		sys.exit(0)
+
 		loop_timer = 0.5
 		print ('{0} pairs found on {1}'.format(len(list_pairs),crypto.utils.get_client_name(client)))
 		for pair in list_pairs :

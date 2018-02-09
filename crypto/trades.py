@@ -16,6 +16,9 @@ def get_active_trades(client,market_prices) :
 	elif type(client) is crypto.gdaxClient :
 		# not yet implemented
 		trades = []
+	else :
+		trades = []
+
 
 	if len(trades) == 0 :
 		return pd.DataFrame()
@@ -54,8 +57,8 @@ def add_active_trades_to_portfolio(portfolio, trades) :
 	if trades.empty :
 		return portfolio
 
-	trades['clean'] = trades.index.map(lambda x: crypto.utils.rchop(x))
-	trades['unit'] = trades.index.map(lambda x: crypto.utils.unit(x))
+	trades['clean'] = trades.index.map(lambda x: crypto.utils.lchop(x))
+	trades['unit'] = trades.index.map(lambda x: crypto.utils.rchop(x))
 
 	# If we buy, we still have needed btc/eth/usdt
 	# If we sell, we still have the alt
@@ -88,7 +91,7 @@ def get_trades(client,s,source) :
 
 def get_all_trades(client,symbol) :
 	res = pd.DataFrame()
-	for source in ['ETH','BTC','USDT'] :
+	for source in ['ETH','BTC','USD'] :
 		t = get_trades(client,symbol,source)
 		if not t.empty :
 			res = pd.concat([res,t])

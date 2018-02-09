@@ -18,8 +18,7 @@ def get_market_prices(client) :
 		prices = client.get_all_tickers()
 		for price in prices :
 			if price['symbol'] == '123456' : continue
-			p = crypto.utils.rchop(price['symbol'])
-			u = crypto.utils.unit(price['symbol'])
+			p,u = crypto.utils.chop(price['symbol'])
 			market_prices[p+'-'+u] = float(price['price'])
 			# print('[{0}] {1}'.format(price['symbol'],price['price']))
 
@@ -52,14 +51,14 @@ def get_market_prices(client) :
 	elif 'BTC-ETH' in market_prices :
 		market_prices['ETH-BTC'] = 1 / market_prices['BTC-ETH']
 
-	if 'ETH-USDT' in market_prices :
-		market_prices['USDT-ETH'] = 1 / market_prices['ETH-USDT']
-	if 'BTC-USDT' in market_prices :
-		market_prices['USDT-BTC'] = 1 / market_prices['BTC-USDT']
+	if 'ETH-USD' in market_prices :
+		market_prices['USD-ETH'] = 1 / market_prices['ETH-USD']
+	if 'BTC-USD' in market_prices :
+		market_prices['USD-BTC'] = 1 / market_prices['BTC-USD']
 	if 'BTC-EUR' in market_prices :
 		market_prices['EUR-BTC'] = 1 / market_prices['BTC-EUR']
-	if 'ETH-USD' in market_prices :
-		market_prices['ETH-USDT'] = market_prices['ETH-USD']
+	# if 'ETH-USD' in market_prices :
+	# 	market_prices['ETH-USD'] = market_prices['ETH-USD']
 
 	return market_prices
 

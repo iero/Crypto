@@ -2,7 +2,7 @@ python-binance
 python-kucoin
 poloniex
 gdax
-pykrakenapi
+krakenex
 bitfinex
 requests
 beautifulsoup4

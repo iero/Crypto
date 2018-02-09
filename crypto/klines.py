@@ -1,5 +1,6 @@
 import time
 import calendar
+import requests
 
 import pandas as pd
 import numpy as np
@@ -30,8 +31,16 @@ def get_historical_klines(client, pair, dateMin, dateMax) :
 		timestamp_min = dateMin.isoformat()
 		timestamp_max = (dateMin + timedelta(minutes=1750)).isoformat()
 		klines = client.get_product_historic_rates(pair, start=timestamp_min, end=timestamp_max, granularity=300)
-
-	# print(klines)
+	# elif type(client) is crypto.krakenClient :
+		# timestamp_min = int(time.mktime(dateMin.timetuple()))
+		# data = {'pair': pair,
+		# 	'interval': 5,
+		# 	'since': 0
+		# 	}
+		# # klines = requests.get('https://api.kraken.com/0/public/OHLC?pair=BCHEUR&interval=5&since=0').json()
+		# klines = client.query_public('OHLC', data=data)
+		# last = klines['result']['last']
+		# klines = klines['result'][pair]
 	return format_klines(client, pd.DataFrame(klines))
 
 # Reformat klines to get ['time','Open', 'High','Low','Close','Volume']
@@ -91,7 +100,16 @@ def format_klines(client,df) :
 		# 	df.loc[i,'time']=pd.to_datetime(df.loc[i, 'Open time'], unit='s')
 		df = df.drop('Open time', 1)
 
-	# print(df.head(10))
+	elif type(client) is crypto.krakenClient :
+		df.columns = ['Open time','Open','High','Low','Close','vwap','Volume','count']
+		df = df.drop('vwap', 1)
+		df = df.drop('count', 1)
+
+		# Convert unix timestamp (s) to UTC date
+		df['time'] = pd.to_datetime(df['Open time'], unit='s')
+		df = df.drop('Open time', 1)
+
+	print(df.head(10))
 
 	# Remove lines without transfer
 	df['Volume'] = df['Volume'].apply(pd.to_numeric)

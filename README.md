@@ -38,11 +38,15 @@ After creating an account, generate API key & secret using [KuCoin API tool](htt
 ### Poloniex (In progress)
 
 Generate API key & secret on [Poloniex API tool](https://poloniex.com/apiKeys) and update parameters file
-We use [poloniex Aula13 SDK](https://github.com/Aula13/poloniex) and [official documentation is here (https://poloniex.com/support/api/)
+We use [poloniex Aula13 SDK](https://github.com/Aula13/poloniex) and [official Poloniex API documentation is here (https://poloniex.com/support/api/)
 
 ### GDAX
 
-This code use GDAX danpaquin SDK : https://github.com/danpaquin/gdax-python
+This code use [GDAX danpaquin SDK](https://github.com/danpaquin/gdax-python)
+
+### Kraken (in progress)
+
+[Official Kraken API documentation](https://www.kraken.com/help/api#public-market-data)
 
 ## Portfolio
 

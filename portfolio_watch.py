@@ -25,7 +25,7 @@ if __name__ == "__main__":
 		if option.exchange is not None and option.exchange != crypto.utils.get_client_name(client) :
 			continue
 
-		print(crypto.utils.get_client_name(client))
+		print('[{0}]'.format(crypto.utils.get_client_name(client))
 		# crypto.utils.verify_time(client)
 		# Get prices
 		market_prices = crypto.market.get_market_prices(client)

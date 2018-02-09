@@ -44,8 +44,10 @@ def get_clients(file) :
 					client = crypto.gdaxPClient()
 			elif service.get("name") == "bitfinex" :
 				client = crypto.bitfinexClient()
-			# elif service.get("name") == "kraken" :
-			# 	from pykrakenapi import KrakenAPI
+			elif service.get("name") == "kraken" :
+				api_key = service.find("api_key")
+				api_secret = service.find("api_secret")
+				client = crypto.krakenClient(api_key.text, api_secret.text)
 
 			if verify_time(client) :
 				clients.append(client)
@@ -134,6 +136,8 @@ def get_client_name(client) :
 		return 'poloniex'
 	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
 		return 'gdax'
+	elif type(client) is crypto.krakenClient :
+		return 'kraken'
 	else :
 		return None
 
@@ -173,6 +177,12 @@ def get_all_pairs(client) :
 			p,u = chop(pair)
 			list_pairs[p+'-'+u] = pair
 
+	elif type(client) is crypto.krakenClient :
+		pairs = client.query_public('AssetPairs')['result']
+		for pair in pairs :
+			p = pairs[pair]
+			list_pairs[p['base']+'-'+p['quote']] = pair
+
 	return list_pairs
 
 def get_ethereum_balances(file) :
@@ -204,32 +214,26 @@ def verify_time(client) :
 	timestamp = None
 	if type(client) is crypto.binanceClient :
 		timestamp = client.get_server_time()['serverTime']
-
+		time_ser = int(int(timestamp)/1000)
 	elif type(client) is crypto.kucoinClient :
 		currencies = client.get_currencies()
-		# if currencies['rates'] :
-		# 	return True
 		timestamp = client.get_last_timestamp()
-
-	elif type(client) is crypto.poloClient :
-		# no timestamp
+		time_ser = int(int(timestamp)/1000)
+	elif type(client) is crypto.poloClient : # no timestamp
 		tickers = client.returnTicker()
 		if tickers is not None and len(tickers) > 0 :
 			return True
-
 	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
-		timestamp_t = client.get_time()
-		timestamp = int(timestamp_t['epoch'])
-		return True # a adapter ? ex : 1517783784.87
+		timestamp = client.get_time()['epoch']
+		time_ser = int(timestamp)
+	elif type(client) is crypto.krakenClient :
+		timestamp = client.query_public('Time')['result']['unixtime']
+		time_ser = int(timestamp)
 
 	if not timestamp :
 		return False
 
-	time_ser = int(int(timestamp)/1000)
 	time_loc = int(time.time())
-	# print(time_ser)
-	# print(time_loc)
-
 	dtime_ser = datetime.datetime.fromtimestamp(time_ser).strftime('%Y-%m-%d %H:%M:%S')
 	dtime_loc = datetime.datetime.fromtimestamp(time_loc).strftime('%Y-%m-%d %H:%M:%S')
 	# print('Server time is {0}ms {1}'.format(time_ser, dtime_ser))
@@ -258,3 +262,11 @@ def chop(thestring):
 		return thestring[:-len('USD')] , 'USD'
 	else :
 		return thestring , ''
+
+def lchop(x) :
+	y,z = chop(x)
+	return y
+
+def rchop(x) :
+	y,z = chop(x)
+	return z
