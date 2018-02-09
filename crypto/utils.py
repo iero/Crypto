@@ -66,7 +66,7 @@ def get_out_dir(file) :
 	out_dir = settings.find('output').text
 	# Create paths
 	if not os.path.exists(out_dir): os.makedirs(out_dir)
-	rep = ['market','history','history/binance','history/kucoin','history/poloniex','fees']
+	rep = ['market','history','history/binance','history/kucoin','history/poloniex','history/gdax','fees']
 	for r in rep :
 		if not os.path.exists(out_dir+'/'+r): os.makedirs(out_dir+'/'+r)
 
@@ -227,7 +227,6 @@ def verify_time(client) :
 
 	time_ser = int(int(timestamp)/1000)
 	time_loc = int(time.time())
-
 	# print(time_ser)
 	# print(time_loc)
 
@@ -259,15 +258,3 @@ def chop(thestring):
 		return thestring[:-len('USD')] , 'USD'
 	else :
 		return thestring , ''
-
-# def unit(thestring):
-# 	if thestring.endswith('ETH') :
-# 		return 'ETH'
-# 	elif thestring.endswith('BTC') :
-# 		return 'BTC'
-# 	elif thestring.endswith('BNB') :
-# 		return 'BNB'
-# 	elif thestring.endswith('USDT') :
-# 		return 'USDT'
-# 	else :
-# 		return thestring

@@ -4,7 +4,7 @@ import calendar
 import pandas as pd
 import numpy as np
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import crypto
 
@@ -13,35 +13,32 @@ import crypto
 # when should be a date string DD/MM/YYYY
 # Warning : We stay in UTC !!
 
-def get_historical_klines(client, pair, day, dateMax) :
+def get_historical_klines(client, pair, dateMin, dateMax) :
 	if type(client) is crypto.binanceClient :
-		timestamp = int(time.mktime(day.timetuple())) * 1000
-		klines = client.get_klines(symbol=pair, interval=crypto.binanceClient.KLINE_INTERVAL_5MINUTE, startTime=timestamp)
+		timestamp_min = int(time.mktime(dateMin.timetuple())) * 1000
+		klines = client.get_klines(symbol=pair, interval=crypto.binanceClient.KLINE_INTERVAL_5MINUTE, startTime=timestamp_min)
 	elif type(client) is crypto.kucoinClient :
-		timestamp = int(time.mktime(day.timetuple()))
+		timestamp_min = int(time.mktime(dateMin.timetuple()))
 		timestamp_max = int(time.mktime(dateMax.timetuple()))
-		klines = client.get_kline_data_tv(pair, crypto.kucoinClient.RESOLUTION_5MINUTES, timestamp, timestamp_max)
+		klines = client.get_kline_data_tv(pair, crypto.kucoinClient.RESOLUTION_5MINUTES, timestamp_min, timestamp_max)
 	elif type(client) is crypto.poloClient :
-		timestamp = int(time.mktime(day.timetuple()))
+		timestamp_min = int(time.mktime(dateMin.timetuple()))
 		timestamp_max = int(time.mktime(dateMax.timetuple()))
-		klines = client.returnChartData(pair, 300, start=timestamp, end=timestamp_max)
+		klines = client.returnChartData(pair, 300, start=timestamp_min, end=timestamp_max)
 	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
-		# 200 points per request
-		timestamp = int(time.mktime(day.timetuple()))
-		# timestamp_max = int(time.mktime(dateMax.timetuple()))
-		print(timestamp)
-		klines = client.get_product_historic_rates(pair, start=timestamp, granularity=300)
-		print(klines)
+		# 350 points max per request : (288/day for 5min step)
+		timestamp_min = dateMin.isoformat()
+		timestamp_max = (dateMin + timedelta(minutes=1750)).isoformat()
+		klines = client.get_product_historic_rates(pair, start=timestamp_min, end=timestamp_max, granularity=300)
 
+	# print(klines)
 	return format_klines(client, pd.DataFrame(klines))
-
-# def get_klines(pair) :
-# 	klines = client.get_klines(symbol=pair, interval=Client.KLINE_INTERVAL_1MINUTE)
-# 	return format_klines(pd.DataFrame(klines))
 
 # Reformat klines to get ['time','Open', 'High','Low','Close','Volume']
 # Return time is in UTC time
 def format_klines(client,df) :
+	if df.empty : return df
+
 	if type(client) is crypto.binanceClient :
 		df.columns = ['Open time','Open', 'High','Low','Close','Volume','Close time','Quote asse volume','Number of trades','Taker base','Taker quote','Ignore']
 
@@ -75,14 +72,26 @@ def format_klines(client,df) :
 		df = df.drop('weightedAverage', 1)
 
 		# Reorder
-		cols = ['Open time','Open', 'High','Low','Close','Volume']
+		cols = ['Open time','Open','High','Low','Close','Volume']
 		df = df[cols]
 
 		# Convert unix timestamp (s) to UTC date
 		df['time'] = pd.to_datetime(df['Open time'], unit='s')
 		df = df.drop('Open time', 1)
 
-		# print(df.head(10))
+	elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
+		df.columns = ['Open time','Low','High','Open','Close','Volume']
+		# Reorder
+		cols = ['Open time','Open','High','Low','Close','Volume']
+		df = df[cols]
+
+		# Convert unix timestamp (s) to UTC date
+		df['time'] = pd.to_datetime(df['Open time'], unit='s')
+		# for i in df.index:
+		# 	df.loc[i,'time']=pd.to_datetime(df.loc[i, 'Open time'], unit='s')
+		df = df.drop('Open time', 1)
+
+	# print(df.head(10))
 
 	# Remove lines without transfer
 	df['Volume'] = df['Volume'].apply(pd.to_numeric)

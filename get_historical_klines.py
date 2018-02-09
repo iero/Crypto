@@ -25,7 +25,8 @@ if __name__ == "__main__":
 		if option.exchange is not None and option.exchange != crypto.utils.get_client_name(client) :
 			continue
 
-		print(crypto.utils.get_client_name(client))
+		client_name = crypto.utils.get_client_name(client)
+
 		list_pairs = {}
 		if option.pair is None :
 			list_pairs = crypto.utils.get_all_pairs(client)
@@ -36,8 +37,9 @@ if __name__ == "__main__":
 			else :
 				print('Pair {0} not available on {1}'.format(option.pair,crypto.utils.get_client_name(client)))
 
-		print(list_pairs)
+		# print(list_pairs)
 
+		# Original = opening date
 		if type(client) is crypto.binanceClient :
 			# Binance opening : 14/07/2017
 			date_original = datetime(2017, 7, 14)
@@ -48,21 +50,16 @@ if __name__ == "__main__":
 			# Dont know when opening but 01/01/2016 seems good.
 			date_original = datetime(2016, 1, 1)
 		elif type(client) is crypto.gdaxClient or type(client) is crypto.gdaxPClient :
-			date_original = datetime(2016, 1, 1)
-			date_max = datetime(2016, 1, 31)
-			df = crypto.klines.get_historical_klines(client,'BTC_ETH',date_original,date_max)
-			print(df)
+			date_original = datetime(2015, 1, 15)
+		# 	date_max = datetime(2016, 1, 2)
+		# 	df = crypto.klines.get_historical_klines(client,'ETH-USD',date_original,date_max)
+		# 	print(df)
 
-		sys.exit(1)
+		# sys.exit(1)
 		loop_timer = 0.5
 		print ('{0} pairs found on {1}'.format(len(list_pairs),crypto.utils.get_client_name(client)))
 		for pair in list_pairs :
-			if type(client) is binanceClient :
-				file = out_dir+'/history/binance/history_'+pair+".csv"
-			elif type(client) is kucoinClient :
-				file = out_dir+'/history/kucoin/history_'+pair+".csv"
-			elif type(client) is poloClient :
-				file = out_dir+'/history/poloniex/history_'+pair+".csv"
+			file = out_dir+'/history/'+client_name+'/history_'+pair+".csv"
 
 			# If file exists, complete
 			if os.path.exists(file) :
@@ -77,19 +74,23 @@ if __name__ == "__main__":
 				date = date_original
 
 			while date_max - date > timedelta(minutes = 5) :
-				# print(date)
-				# print(date_max)
 
 				df = crypto.klines.get_historical_klines(client,list_pairs[pair],date,date_max)
-				last_date = df.tail(1).index[0]
-				print('[{0}] Updated from {1} to {2}'.format(pair,date,last_date))
 
-				# End of list
-				if date == last_date :
-					break
+				# too early ?
+				if df.empty :
+					date = date + timedelta(days = 30)
+					print('[{0}] No value for {1}'.format(pair,date))
 				else :
-					date = last_date
-				resultat = pd.concat([resultat, df])
+					last_date = df.tail(1).index[0]
+					print('[{0}] Updated from {1} to {2}'.format(pair,date,last_date))
+
+					# End of list
+					if date == last_date :
+						break
+					else :
+						date = last_date
+					resultat = pd.concat([resultat, df])
 
 				time.sleep(loop_timer)
 
