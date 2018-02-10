@@ -101,10 +101,10 @@ def get_all_trades(client,symbol) :
 def show_trades(trades) :
 
 	if trades.empty :
-		print('\n---------- No Actives Trades ----')
+		# print('\n---------- No Actives Trades ----')
 		return
 
-	print('\n---------- Active Trades ----')
+	print('---- [Active Trades] ----')
 	trades['quantity'] = trades['quantity'].map(lambda x: '%2.3f' % x)
 	# portfolio.loc['Total'] = portfolio.sum()
 
@@ -122,5 +122,5 @@ def show_trades(trades) :
 
 	# Remove column with only null values
 	# trades.loc[:, (trades != 0).any(axis=0)]
-
+	print('\n')
 

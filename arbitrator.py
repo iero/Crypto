@@ -31,7 +31,8 @@ def get_transactions_scenarios(market_prices,clients_fees,clients_dict,cols_list
 
 		# extract corresponding fees
 		df_fees = clients_fees[client_name]
-		df_fees = df_fees.loc[df_fees['coin'] == coin]
+		if 'coin' in df_fees :
+			df_fees = df_fees.loc[df_fees['coin'] == coin]
 		fee = 0
 		min_withdraw = 0
 		if not df_fees.empty :

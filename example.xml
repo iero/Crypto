@@ -13,9 +13,15 @@
 	</service>
 
 	<service name="kucoin">
-	 <api_key>YOUR_KEY</api_key>
-	 <api_secret>YOUR_SECRET</api_secret>
-	 <fees>https://news.kucoin.com/en/fee/</fees>
- </service>
+		<api_key>YOUR_KEY</api_key>
+		<api_secret>YOUR_SECRET</api_secret>
+		<fees>https://news.kucoin.com/en/fee/</fees>
+	</service>
+
+	<service name="etherscan">
+		<api_key>YOUR KEY</api_key>
+		<address>0xYOUR_ADDRESS</address>
+		<address>0xYOUR_ADDRESS</address>
+	</service>
 
 </data>

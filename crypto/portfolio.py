@@ -21,6 +21,15 @@ def get_portfolio(client) :
 		df = pd.DataFrame(info)
 		df = df.drop(['id','available', 'hold', 'profile_id'],1)
 		df.columns = ['quantity', 'symbol']
+	elif type(client) is crypto.etherClient :
+		df = pd.DataFrame(columns=['symbol','quantity','eth'])
+		balance = client.get_balance_multiple()
+		line = 0
+		for account in balance :
+			# balance is in Wei (10^-18) units
+			val = int(account['balance']) * 10**-18
+			df.loc[line] = ['ETH',val,val]
+			line += 1
 	else :
 		return pd.DataFrame()
 
@@ -30,8 +39,8 @@ def get_portfolio(client) :
 	return df[(df['quantity'] > 0)]
 
 def add_market_prices_to_portfolio(portfolio, market_prices) :
-	if portfolio.empty :
-		return pd.DataFrame()
+	if portfolio.empty or len(market_prices) <= 2:
+		return portfolio
 
 	portfolio_eth = []
 	portfolio_btc = []
@@ -136,50 +145,39 @@ def add_original_buy_transactions(client,portfolio,market) :
 	portfolio['change'] = change_percent
 	print(portfolio)
 
-# def add_market_prices_to_portfolio_kucoin(portfolio, market_prices) :
+def get_balance(client) :
+	out = {}
+	if type(client) is crypto.etherClient :
+		balance = client.get_balance_multiple()
+		for account in balance :
+			# balance is in Wei (10^-18) units
+			val = int(account['balance']) * 10**-18
+			out[account['account']] = val
 
-# 	portfolio_usd = []
-# 	portfolio_btc = []
-
-# 	portfolio['quantity'] = portfolio['quantity'].apply(pd.to_numeric)
-
-# 	for s in portfolio.index.values :
-# 		if s in market_prices :
-# 			portfolio_usd.append(market_prices[s])
-# 			portfolio_btc.append(market_prices[s]/market_prices['BTC'])
-
-
-# 	portfolio['btc'] = portfolio['quantity'] * portfolio_btc
-# 	portfolio['usd'] = portfolio['quantity'] * portfolio_usd
-
-# 	return portfolio
+	return out
 
 def show_portfolio(portfolio,dust) :
 	if portfolio.empty :
-		print('\n----- empty Portfolio ----')
+		# print('\n----- empty Portfolio ----')
 		return
 
-	print('\n---------- Portfolio ----')
-	if 'eth' not in portfolio :
-		portfolio['quantity'] = portfolio['quantity'].map(lambda x: '%2.3f' % x)
-	else :
-		portfolio['%'] = portfolio['eth']/ portfolio['eth'].sum()
-		portfolio.loc['Total'] = portfolio.sum()
+	print('---- [Portfolio] ----')
+	portfolio['%'] = portfolio['eth']/ portfolio['eth'].sum()
+	portfolio.loc['Total'] = portfolio.sum()
 
-		portfolio['quantity'] = portfolio['quantity'].map(lambda x: '%2.2f' % x)
-		portfolio['eth'] = portfolio['eth'].map(lambda x: '%2.5f' % x)
+	portfolio['quantity'] = portfolio['quantity'].map(lambda x: '%2.2f' % x)
+	portfolio['eth'] = portfolio['eth'].map(lambda x: '%2.5f' % x)
+	if 'btc' in portfolio :
 		portfolio['btc'] = portfolio['btc'].map(lambda x: '%2.5f' % x)
+	if 'usd' in portfolio :
 		portfolio['usd'] = portfolio['usd'].map(lambda x: '%2.2f' % x)
 		portfolio['usd'] = portfolio['usd'].apply(pd.to_numeric)
 
-		portfolio['%'] = pd.Series(["{0:.0f}%".format(val * 100) for val in portfolio['%']], index = portfolio.index)
+	portfolio['%'] = pd.Series(["{0:.0f}%".format(val * 100) for val in portfolio['%']], index = portfolio.index)
 
-	print(portfolio[(portfolio['usd'] > dust)])
+	if 'usd' in portfolio :
+		print(portfolio[(portfolio['usd'] > dust)])
+	else :
+		print(portfolio)
 
-# def show_portfolio_kucoin(portfolio,dust) :
-
-# 	print('\n---------- Portfolio ----')
-# 	#portfolio['quantity'] = portfolio['quantity'].map(lambda x: '%2.3f' % x)
-# 	portfolio.loc['Total'] = portfolio.sum()
-# 	# portfolio['Percent'] = pd.Series(["{0:.0f}%".format(val * 100) for val in portfolio['Percent']], index = portfolio.index)
-# 	print(portfolio)
+	print('\n')

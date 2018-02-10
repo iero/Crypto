@@ -48,6 +48,13 @@ def get_clients(file) :
 				api_key = service.find("api_key")
 				api_secret = service.find("api_secret")
 				client = crypto.krakenClient(api_key.text, api_secret.text)
+			elif service.get("name") == "etherscan" :
+				api_key = service.find("api_key")
+				eth_addresses = []
+				for ad in service.findall('address') :
+					eth_addresses.append(ad.text)
+				# print(eth_addresses)
+				client = crypto.etherClient(address=eth_addresses, api_key=api_key.text)
 
 			if verify_time(client) :
 				clients.append(client)
@@ -106,6 +113,7 @@ def get_fees(file, client) :
 			table = soup.find('table')
 			for row in table.find_all('tr'):
 				columns = row.find_all('td')
+				if len(columns) == 0 : continue
 				asset_code = columns[0].get_text().strip()
 				if asset_code == 'Assets' :
 					continue
@@ -138,6 +146,8 @@ def get_client_name(client) :
 		return 'gdax'
 	elif type(client) is crypto.krakenClient :
 		return 'kraken'
+	elif type(client) is crypto.etherClient :
+		return 'etherscan'
 	else :
 		return None
 
@@ -229,6 +239,9 @@ def verify_time(client) :
 	elif type(client) is crypto.krakenClient :
 		timestamp = client.query_public('Time')['result']['unixtime']
 		time_ser = int(timestamp)
+
+	elif type(client) is crypto.etherClient :
+		return True
 
 	if not timestamp :
 		return False

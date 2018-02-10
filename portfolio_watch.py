@@ -21,11 +21,12 @@ if __name__ == "__main__":
 	clients = crypto.utils.get_clients(option.params)
 	out_dir = crypto.utils.get_out_dir(option.params)
 
+	main_market_price = None
 	for client in clients :
 		if option.exchange is not None and option.exchange != crypto.utils.get_client_name(client) :
 			continue
 
-		print('[{0}]'.format(crypto.utils.get_client_name(client))
+		print('[{0}]'.format(crypto.utils.get_client_name(client)))
 		# crypto.utils.verify_time(client)
 		# Get prices
 		market_prices = crypto.market.get_market_prices(client)
