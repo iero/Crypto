@@ -28,7 +28,7 @@ def get_portfolio(client) :
 		for account in balance :
 			# balance is in Wei (10^-18) units
 			val = int(account['balance']) * 10**-18
-			df.loc[line] = ['ETH',val,val]
+			df.loc[line] = [account['account'],val,val]
 			line += 1
 	else :
 		return pd.DataFrame()
