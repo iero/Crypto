@@ -9,6 +9,18 @@ from datetime import datetime, date, timedelta
 
 import crypto
 
+# Get last klines
+def get_last_klines(client, pair, interval) :
+
+	if type(client) is crypto.binanceClient :
+		if interval == 1 : interval = crypto.binanceClient.KLINE_INTERVAL_1MINUTE
+		elif interval == 5 : interval = crypto.binanceClient.KLINE_INTERVAL_5MINUTE
+		else : return None
+
+		klines = client.get_klines(symbol=pair, interval=interval)
+
+	return format_klines(client, pd.DataFrame(klines))
+
 # Get Historical data (for training model use) :
 # pair can be 'NEOBTC'
 # when should be a date string DD/MM/YYYY
@@ -109,7 +121,7 @@ def format_klines(client,df) :
 		df['time'] = pd.to_datetime(df['Open time'], unit='s')
 		df = df.drop('Open time', 1)
 
-	print(df.head(10))
+	# print(df.head(10))
 
 	# Remove lines without transfer
 	df['Volume'] = df['Volume'].apply(pd.to_numeric)

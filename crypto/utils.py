@@ -12,50 +12,17 @@ import xml.etree.ElementTree as ET
 
 import crypto
 
+# Get all available clients
 def get_clients(file) :
 	clients = []
 	tree = ET.parse(file)
 	settings = tree.getroot()
 
 	for service in settings.findall('service') :
-		client = None
 		name = service.get("name")
+		client = get_client(name=name, file=file)
 
 		try :
-			if service.get("name") == "binance" :
-				api_key = service.find("api_key")
-				api_secret = service.find("api_secret")
-				client = crypto.binanceClient(api_key.text, api_secret.text)
-			elif service.get("name") == "kucoin" :
-				api_key = service.find("api_key")
-				api_secret = service.find("api_secret")
-				client = crypto.kucoinClient(api_key.text, api_secret.text)
-			elif service.get("name") == "poloniex" :
-				api_key = service.find("api_key")
-				api_secret = service.find("api_secret")
-				client = crypto.poloClient(api_key.text, api_secret.text)
-			elif service.get("name") == "gdax" :
-				api_key = service.find("api_key")
-				api_secret = service.find("api_secret")
-				api_passphrase = service.find("api_passphrase")
-				if api_key and api_secret and api_passphrase :
-					client = crypto.gdaxClient(api_key.text, api_secret.text, api_passphrase.text)
-				else :
-					client = crypto.gdaxPClient()
-			elif service.get("name") == "bitfinex" :
-				client = crypto.bitfinexClient()
-			elif service.get("name") == "kraken" :
-				api_key = service.find("api_key")
-				api_secret = service.find("api_secret")
-				client = crypto.krakenClient(api_key.text, api_secret.text)
-			elif service.get("name") == "etherscan" :
-				api_key = service.find("api_key")
-				eth_addresses = []
-				for ad in service.findall('address') :
-					eth_addresses.append(ad.text)
-				# print(eth_addresses)
-				client = crypto.etherClient(address=eth_addresses, api_key=api_key.text)
-
 			if verify_time(client) :
 				clients.append(client)
 				print('Connected to {0}'.format(get_client_name(client)))
@@ -67,6 +34,63 @@ def get_clients(file) :
 
 	return clients
 
+# Get one client
+# Params : name, file
+def get_client(**kwargs) :
+
+	# Service is mandatory
+	if kwargs.get('name') :
+		service_name = kwargs.get('name')
+	else :
+		return None
+
+	# Find directly in file
+	if kwargs.get('file') :
+		tree = ET.parse(kwargs.get('file'))
+		settings = tree.getroot()
+
+		try :
+			for service in settings.findall('service') :
+				s_name = service.get("name")
+				if s_name == service_name == "binance" :
+					api_key = service.find("api_key")
+					api_secret = service.find("api_secret")
+					return crypto.binanceClient(api_key.text, api_secret.text)
+				elif s_name == service_name == "kucoin" :
+					api_key = service.find("api_key")
+					api_secret = service.find("api_secret")
+					return crypto.kucoinClient(api_key.text, api_secret.text)
+				elif s_name == service_name == "poloniex" :
+					api_key = service.find("api_key")
+					api_secret = service.find("api_secret")
+					return crypto.poloClient(api_key.text, api_secret.text)
+				elif s_name == service_name == "gdax" :
+					api_key = service.find("api_key")
+					api_secret = service.find("api_secret")
+					api_passphrase = service.find("api_passphrase")
+					if api_key and api_secret and api_passphrase :
+						return crypto.gdaxClient(api_key.text, api_secret.text, api_passphrase.text)
+					else :
+						return crypto.gdaxPClient()
+				elif s_name == service_name == "bitfinex" :
+					# Not enough money to test private API
+					return crypto.bitfinexClient()
+				elif s_name == service_name == "kraken" :
+					api_key = service.find("api_key")
+					api_secret = service.find("api_secret")
+					return crypto.krakenClient(api_key.text, api_secret.text)
+				elif s_name == service_name == "etherscan" :
+					api_key = service.find("api_key")
+					eth_addresses = []
+					for ad in service.findall('address') :
+						eth_addresses.append(ad.text)
+					# print(eth_addresses)
+					return crypto.etherClient(address=eth_addresses, api_key=api_key.text)
+		except :
+			print('Client {} not available (exception)'.format(name))
+			return None
+
+	return None
 
 def get_out_dir(file) :
 	tree = ET.parse(file)
