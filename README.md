@@ -6,14 +6,14 @@ Can connect to several services (exchanges platforms) for building your own tool
 
 ## General
 
-Install dependancies :
-`pip install --user -r requirements.txt`
-
-For setting a specific conda environnment :
+For setting a specific conda environment :
 ```
 conda create -n python3 python=3.6 anaconda
 source activate python3
 ```
+
+Install dependancies :
+`pip install --user -r requirements.txt`
 
 Copy ```example.xml``` file somewhere (DO NOT KEEP IN THE SAME DIRECTORY) and rename it to something else. You will use this file using `--params file.xml`. Update params file with sections that apply :
 - binance (working)

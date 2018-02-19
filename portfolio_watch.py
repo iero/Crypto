@@ -33,6 +33,7 @@ if __name__ == "__main__":
 
 		# Get portfolio and add equivalent values
 		portfolio = crypto.portfolio.get_portfolio(client)
+		# crypto.portfolio.show_portfolio(portfolio,0)
 
 		# Get active trading position
 		trades = crypto.trades.get_active_trades(client,market_prices)
@@ -51,8 +52,7 @@ if __name__ == "__main__":
 		crypto.portfolio.show_portfolio(portfolio,dust_limit)
 		crypto.trades.show_trades(trades)
 
-		# In beta :
-		# crypto.utils.get_ethereum_balances(option.params)
+		# In beta (too long to execute) :
 		#crypto.portfolio.add_original_buy_transactions(client, portfolio, market_prices)
 
 

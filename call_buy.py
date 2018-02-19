@@ -20,7 +20,7 @@ def add_inf(df,buy) :
 def show_df(df) :
 	pd.set_option('expand_frame_repr', False)
 	df.index = df.index.strftime('%H:%M')
-	print(df.tail(15))
+	print(df.tail(5))
 
 if __name__ == "__main__":
 
@@ -38,28 +38,59 @@ if __name__ == "__main__":
 	# parser.add_argument("--stoploss", type=str, help="Stoploss (ie: 5% or absolute value)", required=True)
 	option = parser.parse_args()
 
-	clients = crypto.utils.get_clients(option.params)
 	out_dir = crypto.utils.get_out_dir(option.params)
+	client = crypto.utils.get_client(name=option.exchange,file=option.params)
 
 	# Only with binance now
-	client = crypto.utils.get_client(name=option.exchange,file=option.params)
 	if not client or option.exchange != 'binance' :
 		print('Client {0} unknown'.format(option.exchange))
 		sys.exit(1)
 
+	#TODO Verify that bag is available for trade
+	# portfolio = crypto.portfolio.get_portfolio(client)
+
+	# First call
 	df = crypto.klines.get_last_klines(client,option.pair,1)
 	df = add_inf(df,option.buy)
 	show_df(df)
 
-	# Synchronise
+	#Verify if support & buy values are not strange
+	last_close = float(df.tail(1).iloc[0]['Close'])
+	if not crypto.calls.verify_call_buy(last_close,option.support,option.buy) :
+		sys.exit(1)
 
+	#TODO : Synchronise
+
+	# We are before buy zone
+	step_in_buy_zone = False
+	got_a_bag = False
 
 	# Loop every minute :
 	timer = 1
 	while True :
 		df = crypto.klines.get_last_klines(client,option.pair,timer)
-		df = add_inf(df,option.buy)
-		show_df(df)
+		last_open = float(df.tail(1).iloc[0]['Open'])
+		last_close = float(df.tail(1).iloc[0]['Close'])
+
+		# Enter in buyzone for first time
+		if not step_in_buy_zone and option.support < last_open < option.buy and option.support < last_close < option.buy :
+			print ('Reached buy zone !')
+			step_in_buy_zone = True
+
+		# Support broken and close 5% below, but nothing bought
+		if last_open < option.support and last_close < option.support and lastclose < 0.95 * option.support :
+			# If bought : sell, if not, exit
+			if got_a_bag :
+				print ('Support broken ! Sell bag')
+			else :
+				print ('Support broken !')
+			sys.exit(1)
+
+		# Go out above buy zone
+		if step_in_buy_zone and option.buy < last_open and option.buy < last_close :
+			print ('Signal to buy !')
+			got_a_bag = True
+
 		time.sleep(timer*60)
 
 

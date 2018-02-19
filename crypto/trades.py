@@ -45,7 +45,7 @@ def get_active_trades(client,market_prices) :
 
 	actual_price = []
 	for s in df.index.values :
-		for x, y in pairs.items():    # for name, age in list.items():  (for Python 3.x)
+		for x, y in pairs.items():
 			if y == s:
 				actual_price.append(market_prices[x])
 	df['price'] = actual_price

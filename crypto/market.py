@@ -27,6 +27,8 @@ def get_market_prices(client) :
 		for price in prices :
 			# print(price)
 			if 'lastDealPrice' in price :
+				if price['coinTypePair'] == 'USDT' :
+					price['coinTypePair'] = 'USD'
 				market_prices[price['coinType']+'-'+price['coinTypePair']] = float(price['lastDealPrice'])
 
 	elif type(client) is crypto.poloClient :
